@@ -51,6 +51,8 @@ class EpcSgwPgwApplication : public Application
 
 public:
 
+  std::map<Ipv4Address, Ipv4Address> m_ueAddrByTapAddrMap;
+
   // inherited from Object
   static TypeId GetTypeId (void);
   virtual void DoDispose ();
