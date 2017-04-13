@@ -10,6 +10,7 @@ def build(bld):
     module = bld.create_ns3_module('testbed', ['internet', 'lte', 'mobility'])
     module.source = [
         'model/testbed.cc',
+        'model/TestbedLink.cc',
         'helper/testbed-helper.cc',
         ]
 
@@ -22,6 +23,7 @@ def build(bld):
     headers.module = 'testbed'
     headers.source = [
         'model/testbed.h',
+        'model/TestbedLink.h',
         'helper/testbed-helper.h',
         ]
 
