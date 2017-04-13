@@ -36,7 +36,6 @@ NS_LOG_COMPONENT_DEFINE ("EpcSgwPgwApplication");
 // UeInfo
 /////////////////////////
 
-
 EpcSgwPgwApplication::UeInfo::UeInfo ()
 {
   NS_LOG_FUNCTION (this);
@@ -144,13 +143,21 @@ EpcSgwPgwApplication::RecvFromTunDevice (Ptr<Packet> packet, const Address& sour
   Ptr<Packet> pCopy = packet->Copy ();
   Ipv4Header ipv4Header;
   pCopy->RemoveHeader (ipv4Header);
+
+  std::map<Ipv4Address, Ipv4Address >::iterator iter = m_ueAddrByTapAddrMap.find (ipv4Header.GetDestination ());
+  Ipv4Address ueRouteAddrnew = iter->second;
+
+  ipv4Header.SetDestination(ueRouteAddrnew);
+
   Ipv4Address ueAddr =  ipv4Header.GetDestination ();
   NS_LOG_LOGIC ("packet addressed to UE " << ueAddr);
 
   // find corresponding UeInfo address
+  //std::cout<<"EpcSgwPgwApplication::RecvFromTunDevice " <<std::endl;
   std::map<Ipv4Address, Ptr<UeInfo> >::iterator it = m_ueInfoByAddrMap.find (ueAddr);
   if (it == m_ueInfoByAddrMap.end ())
-    {        
+    {
+      std::cout<<"unknown UE address " << ueAddr<<std::endl;
       NS_LOG_WARN ("unknown UE address " << ueAddr);
     }
   else
@@ -159,6 +166,7 @@ EpcSgwPgwApplication::RecvFromTunDevice (Ptr<Packet> packet, const Address& sour
       uint32_t teid = it->second->Classify (packet);   
       if (teid == 0)
         {
+          std::cout<<"no matching bearer for this packet " << ueAddr<<std::endl;
           NS_LOG_WARN ("no matching bearer for this packet");                   
         }
       else
@@ -178,6 +186,7 @@ EpcSgwPgwApplication::RecvFromS1uSocket (Ptr<Socket> socket)
 {
   NS_LOG_FUNCTION (this << socket);  
   NS_ASSERT (socket == m_s1uSocket);
+
   Ptr<Packet> packet = socket->Recv ();
   GtpuHeader gtpu;
   packet->RemoveHeader (gtpu);
@@ -191,6 +200,7 @@ EpcSgwPgwApplication::SendToTunDevice (Ptr<Packet> packet, uint32_t teid)
 {
   NS_LOG_FUNCTION (this << packet << teid);
   NS_LOG_LOGIC (" packet size: " << packet->GetSize () << " bytes");
+
   m_tunDevice->Receive (packet, 0x0800, m_tunDevice->GetAddress (), m_tunDevice->GetAddress (), NetDevice::PACKET_HOST);
 }
 

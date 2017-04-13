@@ -206,11 +206,11 @@ bool
 EpcUeNas::Send (Ptr<Packet> packet)
 {
   NS_LOG_FUNCTION (this << packet);
-
   switch (m_state)
     {
     case ACTIVE:
       {
+
         uint32_t id = m_tftClassifier.Classify (packet, EpcTft::UPLINK);
         NS_ASSERT ((id & 0xFFFFFF00) == 0);
         uint8_t bid = (uint8_t) (id & 0x000000FF);
@@ -309,4 +309,3 @@ EpcUeNas::SwitchToState (State newState)
 
 
 } // namespace ns3
-
