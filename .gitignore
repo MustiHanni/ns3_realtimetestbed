@@ -18,6 +18,7 @@
 src/*
 !src/lte/
 !src/testbed/
+!src/testbed/smartgrid-lte-testbed
 
 # Ignore everything in the "plugins" directory, except the plugins you
 # specify (see the commented-out examples for hints on how to do this.)
