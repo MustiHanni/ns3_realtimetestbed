@@ -86,83 +86,8 @@ main (int argc, char *argv[])
 
 	mytestbedclass.commandLineConfiguration(argc,argv);
 	mytestbedclass.readFileConfiguration();
-/*
-	///////////////////////////////////////////////////////////////
-  Ipv4Address tapAddr;
-  Ipv4Mask tapMask;
-  std::string tapName;
-  tapAddr = Ipv4Address("1.0.0.2");
-  tapMask = Ipv4Mask("255.255.255.0");
-  tapName = "tap-0";
 
-  Ptr<Testbed_Link> testServerlink=Create<Testbed_Link> ();
-  testServerlink->create_link(LINK_TO_PGW,tapName,tapAddr,tapMask);
-  mytestbedclass.installTestbedLink(testServerlink,p2pNetworkAddr,p2pNetworkMask);
-  mytestbedclass.m_rh_Links.push_back(testServerlink);
-
-//  for(uint8_t i=1; i<=mytestbedclass.m_numOfUe;i++){
-	  Ptr<Testbed_Link> testClientlink1=Create<Testbed_Link> ();
-	  uint8_t buf[4];
-	  buf[0] = 1;
-	  buf[1] = 0;
-	  buf[2] = 1;
-	  buf[3] = 2;
-	  tapAddr = Ipv4Address::Deserialize(buf);
- 	  tapMask = Ipv4Mask("255.255.255.0");
-	  tapName = "tap-";
-	  std::string tapNameIndex = std::to_string(1);
-	  tapName.append(tapNameIndex);
-	  testClientlink1->create_link(LINK_TO_UE,tapName,tapAddr,tapMask);
-	  mytestbedclass.installTestbedLink(testClientlink1);
-	  mytestbedclass.m_ue_Links.push_back(testClientlink1);
-	  mytestbedclass.connectLinks(testServerlink,testClientlink1);
-	  /////////////////////////////////////////////////////////////////////////////////////////////////
-	  Ptr<Testbed_Link> testClientlink2=Create<Testbed_Link> ();
-	  buf[0] = 1;
-	  buf[1] = 0;
-	  buf[2] = 2;
-	  buf[3] = 2;
-	  tapAddr = Ipv4Address::Deserialize(buf);
- 	  tapMask = Ipv4Mask("255.255.255.0");
-	  tapName = "tap-";
-	  tapNameIndex = std::to_string(2);
-	  tapName.append(tapNameIndex);
-	  testClientlink2->create_link(LINK_TO_UE,tapName,tapAddr,tapMask);
-	  mytestbedclass.installTestbedLink(testClientlink2);
-	  mytestbedclass.m_ue_Links.push_back(testClientlink2);
-	  mytestbedclass.connectLinks(testServerlink,testClientlink2);
-//  }
-	  mytestbedclass.connectLinks(testClientlink1,testClientlink2);
-*/
-  /////////////////////////////////////////////////////////////////////////////////////////////////
-/*  Ptr<Ipv4> iph;
-  Ipv4Address addr;
-  std::cout <<"=== Node IP Address & Interface =="<<std::endl;
-  iph = testServerlink->m_linkNode->GetObject<Ipv4>();
-  addr = iph->GetAddress (1, 0).GetLocal ();
-  std::cout<<"RHo-ID: "<<testServerlink->m_linkNode->GetId() <<" RHo Addr : "<<addr <<" | Interface : 1"<< std::endl;
-  addr = iph->GetAddress (2, 0).GetLocal ();
-  std::cout<<"RHo-ID: "<<testServerlink->m_linkNode->GetId() <<" RHo Addr : "<<addr <<" | Interface : 2"<< std::endl;
-
-  iph = mytestbedclass.m_pgw->GetObject<Ipv4> ();
-  addr = iph->GetAddress (1, 0).GetLocal ();
-  std::cout<<"PGW-ID: "<<mytestbedclass.m_pgw->GetId() <<" PGW Addr : "<<addr <<" | Interface : 1"<< std::endl;
-  addr = iph->GetAddress (2, 0).GetLocal ();
-  std::cout<<"PGW-ID: "<<mytestbedclass.m_pgw->GetId() <<" PGW Addr : "<<addr <<" | Interface : 2"<< std::endl;
-  addr = iph->GetAddress (3, 0).GetLocal ();
-  std::cout<<"PGW-ID: "<<mytestbedclass.m_pgw->GetId() <<" PGW Addr : "<<addr <<"| Interface : 3"<< std::endl;
-  addr = iph->GetAddress (4, 0).GetLocal ();
-  std::cout<<"PGW-ID: "<<mytestbedclass.m_pgw->GetId() <<" PGW Addr : "<<addr <<"| Interface : 3"<< std::endl;
-  int32_t testinterface = iph->GetInterfaceForAddress(Ipv4Address("3.0.0.1") );
-  std::cout<<"testinterface: "<<testinterface<< std::endl;
-
-  iph = testClientlink->m_linkNode->GetObject<Ipv4> ();
-  addr = iph->GetAddress (1, 0).GetLocal ();
-  std::cout<<" UE-ID: "<<(testClientlink->m_linkNode)->GetId() <<" UE  Addr : "<<addr <<" | Interface : 1"<< std::endl;
-  addr = iph->GetAddress (2, 0).GetLocal ();
-  std::cout<<" UE-ID: "<<(testClientlink->m_linkNode)->GetId() <<" UE  Addr : "<<addr <<" | Interface : 2"<< std::endl;
-  std::cout <<"=================================="<<std::endl;*/
-  setTraceConfig();
+	setTraceConfig();
 
   Simulator::Stop(Seconds(mytestbedclass.m_simTime));
   Simulator::Run();

@@ -34,7 +34,7 @@ namespace ns3 {
 NS_LOG_COMPONENT_DEFINE ("Smartgrid-lte-testbed");
 Testbed::Testbed()
 {
-	m_simTime = 160;
+	m_simTime = 17*60;
 	m_numOfUe=2;
 	m_configFileName="Testbed_Simu_Configuration.txt";
 	NS_LOG_FUNCTION (this);
@@ -144,6 +144,7 @@ void Testbed::installTestbedLink(Ptr<Testbed_Link> link){
 
 	// Install Mobility Model
 	Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+	//std::cout<<"dist = "<<distance*this->m_eNbs.size()<<std::endl;
 	positionAlloc->Add (Vector(distance*this->m_eNbs.size(), 0, 0));
 	MobilityHelper mobility;
 	mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
