@@ -44,7 +44,7 @@ class Testbed_Link:public SimpleRefCount<Testbed_Link>{
 	public:
 	Testbed_Link();
 	~Testbed_Link();
-	void create_link(std::string id, TESTBED_LINKTYPE linktype,std::string tapname,Ipv4Address tapAddr,Ipv4Mask tapMask);
+	void create_link(TESTBED_LINKTYPE linktype,std::string tapname,Ipv4Address tapAddr,Ipv4Mask tapMask);
 
 	//////////////////// Getter Methods //////////////////////////////////
 	Ipv4Mask getLinkTapMask(){return this->m_tapMask;};
@@ -61,7 +61,6 @@ class Testbed_Link:public SimpleRefCount<Testbed_Link>{
 	void setLinkTapAddress(Ipv4Address addr){this->m_tapAddress=addr;};
 	///////////////////////////////////////////////////////////////////////
 
-	std::string m_linkID;
 	std::string m_tapName;
 	Ipv4Address m_tapAddress;
 	Ipv4Mask m_tapMask;

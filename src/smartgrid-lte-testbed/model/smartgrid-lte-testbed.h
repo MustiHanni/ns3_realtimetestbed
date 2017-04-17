@@ -35,23 +35,30 @@ public:
 	void commandLineConfiguration(int argc, char *argv[]);
 	void readFileConfiguration();
 
-	void installTestbedLink(Ptr<Testbed_Link> link);
+	void installTestbedLink(Ptr<Testbed_Link> link, int cellID, int position);
 	void installTestbedLink(Ptr<Testbed_Link> link,Ipv4Address p2pNetworkAddress,Ipv4Mask p2pNetworkMask);
 
 	void connectLinks(Ptr<Testbed_Link> firstLink,Ptr<Testbed_Link>secLink);
 
-	double m_simTime ;
-	uint8_t m_numOfUe;
-	Ptr<LteHelper> m_lteHelper;
-	Ptr<PointToPointEpcHelper>  m_epcHelper;
-	Ptr<Node> m_pgw;
-
-	std::list<Ptr<Testbed_Link>> m_rh_Links;
-	std::list<Ptr<Testbed_Link>> m_ue_Links;
-
-	std::list<Ptr<Node>> m_eNbs;
+	void getUECoordinate(double xCoorENB,double yCoorENB,double &xCoorUE,double &yCoorUE,int cellPosition);
 
 	std::string m_configFileName;
+	std::string m_configfilepath;
+	double m_numOfENB;
+	double m_numOfUE;
+	double m_numOfRH;
+	double m_uePerENB;
+	double m_enbDist;
+	double m_ueDist;
+	double m_simTime ;
+
+	Ptr<LteHelper> m_lteHelper;
+	Ptr<PointToPointEpcHelper>  m_epcHelper;
+
+	Ptr<Node> m_pgw;
+
+    NodeContainer m_eNbsNodeContainer;
+    NetDeviceContainer m_eNbsDeviceContainer;
 protected:
 
 private:

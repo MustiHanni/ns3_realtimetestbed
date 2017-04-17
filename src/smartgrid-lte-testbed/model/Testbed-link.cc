@@ -43,7 +43,6 @@ Testbed_Link::~Testbed_Link(){
 Testbed_Link::Testbed_Link(){
 
 	NS_LOG_FUNCTION (this);
-	this->m_linkID="0";
 	this->m_linktype=UNDEFINED;
 	this->m_tapName="";
 	this->m_tapAddress=Ipv4Address("0.0.0.0");
@@ -53,13 +52,12 @@ Testbed_Link::Testbed_Link(){
 
 	this->m_TapLeg.Create(1);
 }
-void Testbed_Link::create_link(std::string id ,TESTBED_LINKTYPE linktype, std::string tapname, Ipv4Address tapAddr, Ipv4Mask tapMask ){
+void Testbed_Link::create_link(TESTBED_LINKTYPE linktype, std::string tapname, Ipv4Address tapAddr, Ipv4Mask tapMask ){
 
 	NS_LOG_FUNCTION (this);
 	NS_ABORT_MSG_IF( tapAddr == Ipv4Address("0.0.0.0") , "Please Set a valid tap-IP address");
 
 	InternetStackHelper internet;
-	this->m_linkID=id;
 	this->m_linktype = linktype;
 	this->m_tapName = tapname;
 	this->m_tapAddress = tapAddr;

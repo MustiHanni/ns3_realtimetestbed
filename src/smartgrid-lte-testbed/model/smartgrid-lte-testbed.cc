@@ -7,6 +7,8 @@
 #include <sstream>
 #include <iomanip>
 #include <string>
+#include <stdio.h>      /* printf */
+#include <math.h>
 #include "ns3/csma-module.h"
 #include "ns3/tap-bridge-module.h"
 #include "ns3/ipv4-static-routing.h"
@@ -31,18 +33,30 @@
 
 namespace ns3 {
 
+#define PI 3.14159265
+
 NS_LOG_COMPONENT_DEFINE ("Smartgrid-lte-testbed");
+
 Testbed::Testbed()
 {
-	m_simTime = 17*60;
-	m_numOfUe=2;
-	m_configFileName="Testbed_Simu_Configuration.txt";
 	NS_LOG_FUNCTION (this);
+	m_simTime = 17*60;
+	m_numOfENB=1;
+	m_numOfUE=2;
+	m_numOfRH=1;
+	m_uePerENB=m_numOfUE/m_numOfENB;
+	m_ueDist=40;
+	m_enbDist=100;
+	m_configFileName="Testbed_Simu_Configuration.txt";
+	m_configfilepath="/home/ns3/config/";
+	m_configfilepath.append(this->m_configFileName);
 }
+
 Testbed::~Testbed()
 {
 	  NS_LOG_FUNCTION (this);
 }
+
 void Testbed::commandLineConfiguration(int argc, char *argv[])
 {
 	NS_LOG_FUNCTION (this);
@@ -56,12 +70,11 @@ void Testbed::commandLineConfiguration(int argc, char *argv[])
 
 	cmd.AddValue("m_simTime", "Total duration of the simulation [s])", m_simTime);
 	cmd.AddValue("m_configFileName", "Name of Configuration file to set Testbed topologie", m_configFileName);
-//	cmd.AddValue("NUM_CLUSTER", "number of cluster (each eNb may have more than one UE attached)", NUM_CLUSTER);
-//	cmd.AddValue("UE_TO_ENB_DISTANCE", "UE to eNb distance", UE_TO_ENB_DISTANCE);
 	cmd.Parse(argc, argv);
 
 	m_lteHelper = CreateObject<LteHelper> ();
 	m_epcHelper = CreateObject<PointToPointEpcHelper> ();
+
 	m_lteHelper->SetEpcHelper (m_epcHelper);
 
 	ConfigStore inputConfig;
@@ -71,22 +84,24 @@ void Testbed::commandLineConfiguration(int argc, char *argv[])
 	// parse again so you can override default values from the command line
 	cmd.Parse(argc, argv);
 }
+
 void Testbed::readFileConfiguration(){
 
 	std::list<Ptr<Testbed_Link>> testbedLinks;
 
-	std::string linktype;
+	std::string infotype;
 	std::string p2pAddr;
 	std::string p2pMask;
-	std::string cellID;
 	std::string tapName;
 	std::string tapAddr;
 	std::string tapMask;
-	std::string linkID;
+	int cellID;
+	int positionInCell;
 
 	std::string filepath="/home/ns3/config/";
 	filepath.append(this->m_configFileName);
 
+//	std::ifstream ConfigFile_(m_configfilepath);
 	std::ifstream ConfigFile_(filepath);
 	if(ConfigFile_.is_open()){
 		std::string lineContents;
@@ -94,33 +109,59 @@ void Testbed::readFileConfiguration(){
 
 			std::stringstream linkInfoStream(lineContents);
 
-			linkInfoStream >> linktype;
+			linkInfoStream >> infotype;
 
 			Ptr<Testbed_Link> link=Create<Testbed_Link> ();
 
-			if(linktype=="to_pgw"){
+			if(infotype=="grid_info"){
+
+				linkInfoStream >> this->m_numOfUE;
+				linkInfoStream >> this->m_numOfENB;
+				linkInfoStream >> this->m_uePerENB;
+				linkInfoStream >> this->m_enbDist;
+				linkInfoStream >> this->m_ueDist;
+
+				m_eNbsNodeContainer.Create (m_numOfENB);
+
+				MobilityHelper enbMmobility;
+				enbMmobility.SetPositionAllocator ("ns3::GridPositionAllocator",
+			    		"MinX", DoubleValue ( 0.0 ),
+			            "MinY", DoubleValue ( 0.0 ),
+			            "DeltaX", DoubleValue (this->m_enbDist),
+			            "DeltaY", DoubleValue (this->m_enbDist),
+						"GridWidth", UintegerValue ( floor(sqrt(this->m_numOfENB)) ),
+						"LayoutType", StringValue ("RowFirst"));
+
+			    // position will never change.
+				enbMmobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+
+			    // finalize the setup by attaching to each object in the input array a position and initializing
+				enbMmobility.Install (m_eNbsNodeContainer);
+
+			    this->m_eNbsDeviceContainer = this->m_lteHelper->InstallEnbDevice (m_eNbsNodeContainer);
+
+				continue;
+			}else if(infotype=="to_pgw"){
 
 				linkInfoStream >> p2pAddr;
 				linkInfoStream >> p2pMask;
 				linkInfoStream >> tapName;
 				linkInfoStream >> tapAddr;
 				linkInfoStream >> tapMask;
-				linkInfoStream >> linkID;
 
-				link->create_link(linkID,LINK_TO_PGW,tapName,Ipv4Address(tapAddr.c_str ()),Ipv4Mask(tapMask.c_str ()));
+				link->create_link(LINK_TO_PGW,tapName,Ipv4Address(tapAddr.c_str ()),Ipv4Mask(tapMask.c_str ()));
 				this->installTestbedLink(link,Ipv4Address(p2pAddr.c_str()),Ipv4Mask(p2pMask.c_str ()));
 
-			}else if(linktype=="to_ue"){
+			}else if(infotype=="to_ue"){
 
-				linkInfoStream >>  cellID;
+				linkInfoStream >> cellID;
+				linkInfoStream >> positionInCell;
 				linkInfoStream >> tapName;
 				linkInfoStream >> tapAddr;
 				linkInfoStream >> tapMask;
-				linkInfoStream >> linkID;
 
-				link->create_link(linkID,LINK_TO_UE,tapName,Ipv4Address(tapAddr.c_str ()),Ipv4Mask(tapMask.c_str ()));
-				this->installTestbedLink(link);
-
+				link->create_link(LINK_TO_UE,tapName,Ipv4Address(tapAddr.c_str ()),Ipv4Mask(tapMask.c_str ()));
+				this->installTestbedLink(link,cellID,positionInCell);
 			}else{
 				continue;
 			}
@@ -134,26 +175,28 @@ void Testbed::readFileConfiguration(){
 		}
 		ConfigFile_.close();
 	}else{
-		NS_ABORT_MSG("config file not able to open config file");
+		NS_ABORT_MSG("Not able to open config file");
 	}
 }
-void Testbed::installTestbedLink(Ptr<Testbed_Link> link){
 
-	double distance = 50.0;
-	Ptr<Node> enb = CreateObject<Node>();
+void Testbed::installTestbedLink(Ptr<Testbed_Link> link, int cellID, int position){
 
-	// Install Mobility Model
-	Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-	//std::cout<<"dist = "<<distance*this->m_eNbs.size()<<std::endl;
-	positionAlloc->Add (Vector(distance*this->m_eNbs.size(), 0, 0));
-	MobilityHelper mobility;
-	mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-	mobility.SetPositionAllocator(positionAlloc);
-	mobility.Install(enb);
-	mobility.Install(link->getLinkNode());
+	Ptr<Node> enb = this->m_eNbsNodeContainer.Get(cellID);
 
-	NetDeviceContainer enbDev = this->m_lteHelper->InstallEnbDevice (enb);
-	NetDeviceContainer ueDev = this->m_lteHelper->InstallUeDevice (link->m_linkNode);
+    Vector pos = enb->GetObject<MobilityModel>()->GetPosition ();
+	double xCoorUE=0;
+	double yCoorUE=0;
+	this->getUECoordinate(pos.x, pos.y, xCoorUE, yCoorUE, position);
+
+    Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+    positionAlloc->Add( Vector( xCoorUE, yCoorUE, 0) );
+
+    MobilityHelper ueMmobility;
+    ueMmobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    ueMmobility.SetPositionAllocator(positionAlloc);
+    ueMmobility.Install(link->getLinkNode());
+
+    NetDeviceContainer ueDev = this->m_lteHelper->InstallUeDevice(link->m_linkNode);
 
     Ipv4InterfaceContainer ueIpIface2 = this->m_epcHelper->AssignUeIpv4Address ( ueDev );
 
@@ -177,9 +220,9 @@ void Testbed::installTestbedLink(Ptr<Testbed_Link> link){
 	this->m_epcHelper->m_sgwPgwApp->m_ueAddrByTapAddrMap[link->m_tapAddress] = ueIpIface2.GetAddress(0,0);
 
     // Attach one UE per eNodeB
-    this->m_lteHelper->Attach (ueDev.Get(0), enbDev.Get(0));
-    this->m_eNbs.push_back(enb);
+    this->m_lteHelper->Attach (ueDev, m_eNbsDeviceContainer.Get(cellID));
 }
+
 void Testbed::installTestbedLink(Ptr<Testbed_Link> link,Ipv4Address p2pNetworkAddress,Ipv4Mask p2pNetworkMask){
 
     NS_LOG_FUNCTION (this);
@@ -196,32 +239,23 @@ void Testbed::installTestbedLink(Ptr<Testbed_Link> link,Ipv4Address p2pNetworkAd
     	return;
     }
 
-    switch ( link->m_linktype ) {
-       case LINK_TO_PGW:
-    	   p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("5000Gb/s")));
-    	   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-    	   p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.000010)));
-    	   p2pDevices = p2ph.Install (this->m_pgw,link->m_linkNode);
+    p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("5000Gb/s")));
+    p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
+    p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.000010)));
+    p2pDevices = p2ph.Install (this->m_pgw,link->m_linkNode);
 
-    	   ipv4h.SetBase (p2pNetworkAddress,p2pNetworkMask );
-    	   p2pIpInterface = ipv4h.Assign(p2pDevices);
+    ipv4h.SetBase (p2pNetworkAddress,p2pNetworkMask );
+    p2pIpInterface = ipv4h.Assign(p2pDevices);
 
-    	   link->getwayAddrToLteNet = p2pIpInterface.GetAddress(0,0);
-    	   link->getwayIfaceToLteNet = link->m_linkNode->GetObject<Ipv4>()->GetInterfaceForAddress( p2pIpInterface.GetAddress(1,0) );
+    link->getwayAddrToLteNet = p2pIpInterface.GetAddress(0,0);
+    link->getwayIfaceToLteNet = link->m_linkNode->GetObject<Ipv4>()->GetInterfaceForAddress( p2pIpInterface.GetAddress(1,0) );
 
-    	   StaticRouting = ipv4RoutingHelper.GetStaticRouting (this->m_pgw->GetObject<Ipv4> ());
-    	   StaticRouting->AddNetworkRouteTo(
-    			   link->getLinkTapAddress().CombineMask(link->getLinkTapMask()),
-				   link->getLinkTapMask(),
-				   p2pIpInterface.GetAddress(1,0),
-				   this->m_pgw->GetObject<Ipv4>()->GetInterfaceForAddress( p2pIpInterface.GetAddress(0,0) ) );
-          break;
-       case LINK_TO_UE:
-    	   break;
-       case UNDEFINED:
-    	   NS_ABORT_MSG_IF( true , "Please Set a valid link-type, LINK_TO_PGW (1) or LINK_TO_UE (2)");
-          break;
-    }
+    StaticRouting = ipv4RoutingHelper.GetStaticRouting (this->m_pgw->GetObject<Ipv4> ());
+    StaticRouting->AddNetworkRouteTo(
+    		link->getLinkTapAddress().CombineMask(link->getLinkTapMask()),
+			link->getLinkTapMask(),
+			p2pIpInterface.GetAddress(1,0),
+			this->m_pgw->GetObject<Ipv4>()->GetInterfaceForAddress( p2pIpInterface.GetAddress(0,0) ) );
 }
 
 void Testbed::connectLinks(Ptr<Testbed_Link> firstLink,Ptr<Testbed_Link> secondLink){
@@ -241,7 +275,13 @@ void Testbed::connectLinks(Ptr<Testbed_Link> firstLink,Ptr<Testbed_Link> secondL
 			  firstLink->getLinkTapMask(),
 			  secondLink->getwayAddrToLteNet,
 			  secondLink->getwayIfaceToLteNet);
+}
 
+void Testbed::getUECoordinate(double xCoorENB,double yCoorENB,double &xCoorUE,double &yCoorUE,int cellPosition){
+
+	double angle=(2*PI)/(this->m_uePerENB);
+	xCoorUE = xCoorENB + round( m_ueDist * cos( angle* cellPosition));
+	yCoorUE = yCoorENB + round( m_ueDist * sin( angle* cellPosition));
 }
 
 }//ns3 namepspace
