@@ -40,16 +40,14 @@ NS_LOG_COMPONENT_DEFINE ("Smartgrid-lte-testbed");
 Testbed::Testbed()
 {
 	NS_LOG_FUNCTION (this);
-	m_simTime = 17*60;
+	m_simTime = 10;
 	m_numOfENB=1;
 	m_numOfUE=2;
 	m_numOfRH=1;
 	m_uePerENB=m_numOfUE/m_numOfENB;
 	m_ueDist=40;
 	m_enbDist=100;
-	m_configFileName="Testbed_Simu_Configuration.txt";
-	m_configfilepath="/home/ns3/config/";
-	m_configfilepath.append(this->m_configFileName);
+	m_configfilepath="/home/ns3/config/Testbed_Simu_Configuration.txt";
 }
 
 Testbed::~Testbed()
@@ -69,7 +67,7 @@ void Testbed::commandLineConfiguration(int argc, char *argv[])
 	GlobalValue::Bind ("ChecksumEnabled", BooleanValue (true));
 
 	cmd.AddValue("m_simTime", "Total duration of the simulation [s])", m_simTime);
-	cmd.AddValue("m_configFileName", "Name of Configuration file to set Testbed topologie", m_configFileName);
+	cmd.AddValue("m_configfilepath", "Name of Configuration file to set Testbed topologie", m_configfilepath);
 	cmd.Parse(argc, argv);
 
 	m_lteHelper = CreateObject<LteHelper> ();
@@ -98,11 +96,7 @@ void Testbed::readFileConfiguration(){
 	int cellID;
 	int positionInCell;
 
-	std::string filepath="/home/ns3/config/";
-	filepath.append(this->m_configFileName);
-
-//	std::ifstream ConfigFile_(m_configfilepath);
-	std::ifstream ConfigFile_(filepath);
+	std::ifstream ConfigFile_(m_configfilepath);
 	if(ConfigFile_.is_open()){
 		std::string lineContents;
 		while( std::getline(ConfigFile_,lineContents) ){
@@ -114,7 +108,7 @@ void Testbed::readFileConfiguration(){
 			Ptr<Testbed_Link> link=Create<Testbed_Link> ();
 
 			if(infotype=="grid_info"){
-
+				linkInfoStream >> this->m_simTime;
 				linkInfoStream >> this->m_numOfUE;
 				linkInfoStream >> this->m_numOfENB;
 				linkInfoStream >> this->m_uePerENB;
@@ -149,7 +143,7 @@ void Testbed::readFileConfiguration(){
 				linkInfoStream >> tapAddr;
 				linkInfoStream >> tapMask;
 
-				link->create_link(LINK_TO_PGW,tapName,Ipv4Address(tapAddr.c_str ()),Ipv4Mask(tapMask.c_str ()));
+				link->create_link(tapName,Ipv4Address(tapAddr.c_str ()),Ipv4Mask(tapMask.c_str ()));
 				this->installTestbedLink(link,Ipv4Address(p2pAddr.c_str()),Ipv4Mask(p2pMask.c_str ()));
 
 			}else if(infotype=="to_ue"){
@@ -160,7 +154,7 @@ void Testbed::readFileConfiguration(){
 				linkInfoStream >> tapAddr;
 				linkInfoStream >> tapMask;
 
-				link->create_link(LINK_TO_UE,tapName,Ipv4Address(tapAddr.c_str ()),Ipv4Mask(tapMask.c_str ()));
+				link->create_link(tapName,Ipv4Address(tapAddr.c_str ()),Ipv4Mask(tapMask.c_str ()));
 				this->installTestbedLink(link,cellID,positionInCell);
 			}else{
 				continue;
@@ -181,12 +175,12 @@ void Testbed::readFileConfiguration(){
 
 void Testbed::installTestbedLink(Ptr<Testbed_Link> link, int cellID, int position){
 
-	Ptr<Node> enb = this->m_eNbsNodeContainer.Get(cellID);
+	//Ptr<Node> enb = this->m_eNbsNodeContainer.Get(cellID);
 
-    Vector pos = enb->GetObject<MobilityModel>()->GetPosition ();
+    //Vector pos = enb->GetObject<MobilityModel>()->GetPosition ();
 	double xCoorUE=0;
 	double yCoorUE=0;
-	this->getUECoordinate(pos.x, pos.y, xCoorUE, yCoorUE, position);
+	this->getUECoordinate(cellID, xCoorUE, yCoorUE, position);
 
     Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
     positionAlloc->Add( Vector( xCoorUE, yCoorUE, 0) );
@@ -277,11 +271,16 @@ void Testbed::connectLinks(Ptr<Testbed_Link> firstLink,Ptr<Testbed_Link> secondL
 			  secondLink->getwayIfaceToLteNet);
 }
 
-void Testbed::getUECoordinate(double xCoorENB,double yCoorENB,double &xCoorUE,double &yCoorUE,int cellPosition){
+void Testbed::getUECoordinate(int cellID, double &xCoorUE,double &yCoorUE,int cellPosition){
+
+
+	Ptr<Node> enb = this->m_eNbsNodeContainer.Get(cellID);
+
+    Vector pos = enb->GetObject<MobilityModel>()->GetPosition ();
 
 	double angle=(2*PI)/(this->m_uePerENB);
-	xCoorUE = xCoorENB + round( m_ueDist * cos( angle* cellPosition));
-	yCoorUE = yCoorENB + round( m_ueDist * sin( angle* cellPosition));
+	xCoorUE = pos.x + round( m_ueDist * cos( angle* cellPosition));
+	yCoorUE = pos.y + round( m_ueDist * sin( angle* cellPosition));
 }
 
 }//ns3 namepspace

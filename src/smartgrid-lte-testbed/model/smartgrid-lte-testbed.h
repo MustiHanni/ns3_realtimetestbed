@@ -36,13 +36,12 @@ public:
 	void readFileConfiguration();
 
 	void installTestbedLink(Ptr<Testbed_Link> link, int cellID, int position);
-	void installTestbedLink(Ptr<Testbed_Link> link,Ipv4Address p2pNetworkAddress,Ipv4Mask p2pNetworkMask);
+	void installTestbedLink(Ptr<Testbed_Link> link, Ipv4Address p2pNetworkAddress, Ipv4Mask p2pNetworkMask);
 
-	void connectLinks(Ptr<Testbed_Link> firstLink,Ptr<Testbed_Link>secLink);
+	void connectLinks(Ptr<Testbed_Link> firstLink, Ptr<Testbed_Link> secLink);
 
-	void getUECoordinate(double xCoorENB,double yCoorENB,double &xCoorUE,double &yCoorUE,int cellPosition);
+	void getUECoordinate(int cellID, double &xCoorUE, double &yCoorUE, int cellPosition);
 
-	std::string m_configFileName;
 	std::string m_configfilepath;
 	double m_numOfENB;
 	double m_numOfUE;

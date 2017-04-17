@@ -37,14 +37,12 @@
 
 namespace ns3 {
 
-enum TESTBED_LINKTYPE { UNDEFINED, LINK_TO_PGW, LINK_TO_UE };
-
 class Testbed_Link:public SimpleRefCount<Testbed_Link>{
 
 	public:
 	Testbed_Link();
 	~Testbed_Link();
-	void create_link(TESTBED_LINKTYPE linktype,std::string tapname,Ipv4Address tapAddr,Ipv4Mask tapMask);
+	void create_link(std::string tapname,Ipv4Address tapAddr,Ipv4Mask tapMask);
 
 	//////////////////// Getter Methods //////////////////////////////////
 	Ipv4Mask getLinkTapMask(){return this->m_tapMask;};
@@ -52,9 +50,7 @@ class Testbed_Link:public SimpleRefCount<Testbed_Link>{
 	std::string getLinkTapName(){return this->m_tapName;};
 	Ipv4Address getLinkTapAddress(){return this->m_tapAddress;};
 	NodeContainer getLinkTap(){return this->m_TapLeg;};
-	TESTBED_LINKTYPE getLinktype(){return this->m_linktype;};
 	//////////////////// Setter Methods ///////////////////////////////////
-	void setLinktype(TESTBED_LINKTYPE type){this->m_linktype=type;};
 	void setLinkNode(Ptr<Node> networkNode){this->m_linkNode=networkNode;};
 	void setLinkTapMask(Ipv4Mask mask){this->m_tapMask=mask;};
 	void setLinkTapName(std::string tapName){this->m_tapName=tapName;};
@@ -66,7 +62,6 @@ class Testbed_Link:public SimpleRefCount<Testbed_Link>{
 	Ipv4Mask m_tapMask;
 	Ptr<Node> m_linkNode;
 	NodeContainer m_TapLeg;
-	TESTBED_LINKTYPE m_linktype;
 	Ipv4Address getwayAddrToLteNet;
 	uint32_t getwayIfaceToLteNet;
 	};

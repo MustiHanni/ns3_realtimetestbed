@@ -36,12 +36,8 @@
 
 namespace ns3 {
 
-enum TESTBED_LINKTYPE { UNDEFINED, LINK_TO_PGW, LINK_TO_UE };
-
 class Testbed_Link {
 public:
-//	Testbed_Link();
-//	virtual ~Testbed_Link();
 
 	Testbed_Link();
 	~Testbed_Link();

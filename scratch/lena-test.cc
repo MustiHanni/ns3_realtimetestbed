@@ -68,7 +68,7 @@ main (int argc, char *argv[]){
 	mytestbedclass.commandLineConfiguration(argc,argv);
 	mytestbedclass.readFileConfiguration();
 
-	Simulator::Stop(Seconds(mytestbedclass.m_simTime));
+	Simulator::Stop(Minutes(mytestbedclass.m_simTime));
 	Simulator::Run();
 	Simulator::Destroy();
 
