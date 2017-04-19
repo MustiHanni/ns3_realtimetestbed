@@ -49,7 +49,7 @@ Testbed_Link::Testbed_Link(){
 	this->getwayAddrToLteNet=Ipv4Address("0.0.0.0");
 	this->getwayIfaceToLteNet=-1;
 
-	this->m_TapLeg.Create(1);
+	this->m_TapLeg =  CreateObject<Node>();
 }
 void Testbed_Link::create_link( std::string tapname, Ipv4Address tapAddr, Ipv4Mask tapMask ){
 
@@ -82,7 +82,7 @@ void Testbed_Link::create_link( std::string tapname, Ipv4Address tapAddr, Ipv4Ma
 	TapBridgeHelper tapBridge;
 	tapBridge.SetAttribute ("Mode", StringValue ("UseBridge"));
 	tapBridge.SetAttribute ("DeviceName", StringValue (m_tapName));
-	tapBridge.Install ( this->m_TapLeg.Get(0) , csmaDevice.Get (1) );
+	tapBridge.Install ( this->m_TapLeg , csmaDevice.Get (1) );
 }
 }
 

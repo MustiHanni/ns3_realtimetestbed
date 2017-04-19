@@ -38,9 +38,10 @@ public:
 	void installTestbedLink(Ptr<Testbed_Link> link, int cellID, int position);
 	void installTestbedLink(Ptr<Testbed_Link> link, Ipv4Address p2pNetworkAddress, Ipv4Mask p2pNetworkMask);
 
+	void installMobilityModel(Ptr<Testbed_Link> link, int cellID, int cellPosition);
+
 	void connectLinks(Ptr<Testbed_Link> firstLink, Ptr<Testbed_Link> secLink);
 
-	void getUECoordinate(int cellID, double &xCoorUE, double &yCoorUE, int cellPosition);
 
 	std::string m_configfilepath;
 	double m_numOfENB;

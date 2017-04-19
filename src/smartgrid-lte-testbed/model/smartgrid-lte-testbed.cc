@@ -85,27 +85,28 @@ void Testbed::commandLineConfiguration(int argc, char *argv[])
 
 void Testbed::readFileConfiguration(){
 
-	std::list<Ptr<Testbed_Link>> testbedLinks;
-
+	int cellID;
+	int positionInCell;
+	std::string lineContents;
 	std::string infotype;
 	std::string p2pAddr;
 	std::string p2pMask;
 	std::string tapName;
 	std::string tapAddr;
 	std::string tapMask;
-	int cellID;
-	int positionInCell;
+
+	std::list<Ptr<Testbed_Link>> testbedLinks;
 
 	std::ifstream ConfigFile_(m_configfilepath);
 	if(ConfigFile_.is_open()){
-		std::string lineContents;
+
 		while( std::getline(ConfigFile_,lineContents) ){
 
 			std::stringstream linkInfoStream(lineContents);
 
 			linkInfoStream >> infotype;
 
-			Ptr<Testbed_Link> link=Create<Testbed_Link> ();
+			Ptr<Testbed_Link> link = Create<Testbed_Link> ();
 
 			if(infotype=="grid_info"){
 				linkInfoStream >> this->m_simTime;
@@ -156,10 +157,10 @@ void Testbed::readFileConfiguration(){
 
 				link->create_link(tapName,Ipv4Address(tapAddr.c_str ()),Ipv4Mask(tapMask.c_str ()));
 				this->installTestbedLink(link,cellID,positionInCell);
+
 			}else{
 				continue;
 			}
-
 			if(!testbedLinks.empty()){
 				for(std::list<Ptr<Testbed_Link>>::const_iterator iterator= testbedLinks.begin(),end= testbedLinks.end();iterator != end; ++iterator){
 					this->connectLinks((*iterator),link);
@@ -173,22 +174,10 @@ void Testbed::readFileConfiguration(){
 	}
 }
 
-void Testbed::installTestbedLink(Ptr<Testbed_Link> link, int cellID, int position){
+void Testbed::installTestbedLink(Ptr<Testbed_Link> link, int cellID, int position)
+{
 
-	//Ptr<Node> enb = this->m_eNbsNodeContainer.Get(cellID);
-
-    //Vector pos = enb->GetObject<MobilityModel>()->GetPosition ();
-	double xCoorUE=0;
-	double yCoorUE=0;
-	this->getUECoordinate(cellID, xCoorUE, yCoorUE, position);
-
-    Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-    positionAlloc->Add( Vector( xCoorUE, yCoorUE, 0) );
-
-    MobilityHelper ueMmobility;
-    ueMmobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    ueMmobility.SetPositionAllocator(positionAlloc);
-    ueMmobility.Install(link->getLinkNode());
+	this->installMobilityModel(link, cellID, position);
 
     NetDeviceContainer ueDev = this->m_lteHelper->InstallUeDevice(link->m_linkNode);
 
@@ -235,7 +224,7 @@ void Testbed::installTestbedLink(Ptr<Testbed_Link> link,Ipv4Address p2pNetworkAd
 
     p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("5000Gb/s")));
     p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-    p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.000010)));
+    p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.00000010)));
     p2pDevices = p2ph.Install (this->m_pgw,link->m_linkNode);
 
     ipv4h.SetBase (p2pNetworkAddress,p2pNetworkMask );
@@ -271,16 +260,23 @@ void Testbed::connectLinks(Ptr<Testbed_Link> firstLink,Ptr<Testbed_Link> secondL
 			  secondLink->getwayIfaceToLteNet);
 }
 
-void Testbed::getUECoordinate(int cellID, double &xCoorUE,double &yCoorUE,int cellPosition){
-
+void Testbed::installMobilityModel(Ptr<Testbed_Link> link, int cellID, int cellPosition){
 
 	Ptr<Node> enb = this->m_eNbsNodeContainer.Get(cellID);
 
     Vector pos = enb->GetObject<MobilityModel>()->GetPosition ();
 
-	double angle=(2*PI)/(this->m_uePerENB);
-	xCoorUE = pos.x + round( m_ueDist * cos( angle* cellPosition));
-	yCoorUE = pos.y + round( m_ueDist * sin( angle* cellPosition));
+	double angle = (2*PI)/(this->m_uePerENB);
+	double xCoorUE = pos.x + round( m_ueDist * cos( angle * cellPosition));
+	double yCoorUE = pos.y + round( m_ueDist * sin( angle * cellPosition));
+
+    Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+    positionAlloc->Add( Vector( xCoorUE, yCoorUE, 0) );
+
+    MobilityHelper ueMmobility;
+    ueMmobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    ueMmobility.SetPositionAllocator( positionAlloc );
+    ueMmobility.Install(link->getLinkNode());
 }
 
 }//ns3 namepspace

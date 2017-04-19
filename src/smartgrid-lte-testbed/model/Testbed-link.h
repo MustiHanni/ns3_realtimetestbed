@@ -49,7 +49,7 @@ class Testbed_Link:public SimpleRefCount<Testbed_Link>{
 	Ptr<Node> getLinkNode(){return this->m_linkNode;};
 	std::string getLinkTapName(){return this->m_tapName;};
 	Ipv4Address getLinkTapAddress(){return this->m_tapAddress;};
-	NodeContainer getLinkTap(){return this->m_TapLeg;};
+	Ptr<Node> getLinkTap(){return this->m_TapLeg;};
 	//////////////////// Setter Methods ///////////////////////////////////
 	void setLinkNode(Ptr<Node> networkNode){this->m_linkNode=networkNode;};
 	void setLinkTapMask(Ipv4Mask mask){this->m_tapMask=mask;};
@@ -61,7 +61,7 @@ class Testbed_Link:public SimpleRefCount<Testbed_Link>{
 	Ipv4Address m_tapAddress;
 	Ipv4Mask m_tapMask;
 	Ptr<Node> m_linkNode;
-	NodeContainer m_TapLeg;
+	Ptr<Node> m_TapLeg;
 	Ipv4Address getwayAddrToLteNet;
 	uint32_t getwayIfaceToLteNet;
 	};
