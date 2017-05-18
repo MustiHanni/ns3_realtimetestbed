@@ -1,8 +1,8 @@
 /*
- * Testbed_Link-link.cc
+ * TapLink.cc
  *
- *  Created on: Mar 26, 2017
- *      Author: musti
+ *  Created on: Apr 20, 2017
+ *      Author: asa
  */
 
 #include <iostream>
@@ -31,11 +31,9 @@
 #include "ns3/mobility-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
-#include "Testbed-link.h"
+#include "TapLink.h"
 
 namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("Smartgrid-link");
 
 Testbed_Link::~Testbed_Link(){
 	NS_LOG_FUNCTION (this);
@@ -62,8 +60,8 @@ void Testbed_Link::create_link( std::string tapname, Ipv4Address tapAddr, Ipv4Ma
 	this->m_tapMask = tapMask;
 	this->m_linkNode = CreateObject<Node>();
 
-    if ((this->m_linkNode)->GetObject<Ipv4> () == 0){
-    	internet.Install(this->m_linkNode);
+    if ( getLinkNode()->GetObject<Ipv4> () == 0){
+    	internet.Install( getLinkNode() );
     }
 
 	CsmaHelper csmah;
@@ -71,18 +69,18 @@ void Testbed_Link::create_link( std::string tapname, Ipv4Address tapAddr, Ipv4Ma
 	csmah.SetDeviceAttribute ("Mtu", UintegerValue (1500));
 	csmah.SetChannelAttribute ("Delay", TimeValue (Seconds (0.0)));
 	NodeContainer csmaNodes;
-	csmaNodes.Add(this->m_linkNode);
-	csmaNodes.Add(this->m_TapLeg);
+	csmaNodes.Add( getLinkNode() );
+	csmaNodes.Add( getLinkTap() );
 	NetDeviceContainer csmaDevice = csmah.Install (csmaNodes);
 
 	Ipv4AddressHelper ipv4h;
-	ipv4h.SetBase( this->m_tapAddress.CombineMask( this->m_tapMask ) , this->m_tapMask);
+	ipv4h.SetBase( getLinkTapAddress().CombineMask( getLinkTapMask() ) , getLinkTapMask() );
 	Ipv4InterfaceContainer csmaIpIfaces = ipv4h.Assign(csmaDevice.Get(0));
 
 	TapBridgeHelper tapBridge;
 	tapBridge.SetAttribute ("Mode", StringValue ("UseBridge"));
 	tapBridge.SetAttribute ("DeviceName", StringValue (m_tapName));
-	tapBridge.Install ( this->m_TapLeg , csmaDevice.Get (1) );
+	tapBridge.Install ( getLinkTap() , csmaDevice.Get (1) );
 }
 }
 

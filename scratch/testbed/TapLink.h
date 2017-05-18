@@ -1,12 +1,13 @@
 /*
- * Testbed_Link-link.h
+ * TapLink.h
  *
- *  Created on: Mar 26, 2017
- *      Author: musti
+ *  Created on: Apr 20, 2017
+ *      Author: asa
  */
 
-#ifndef SRC_SMARTGRID_LTE_TESTBED_MODEL_Testbed_Link_H_
-#define SRC_SMARTGRID_LTE_TESTBED_MODEL_Testbed_Link_H_
+#ifndef SCRATCH_TESTBED_TAPLINK_H_
+#define SCRATCH_TESTBED_TAPLINK_H_
+
 
 #include <iostream>
 #include <fstream>
@@ -44,18 +45,19 @@ class Testbed_Link:public SimpleRefCount<Testbed_Link>{
 	~Testbed_Link();
 	void create_link(std::string tapname,Ipv4Address tapAddr,Ipv4Mask tapMask);
 
-	//////////////////// Getter Methods //////////////////////////////////
-	Ipv4Mask getLinkTapMask(){return this->m_tapMask;};
-	Ptr<Node> getLinkNode(){return this->m_linkNode;};
 	std::string getLinkTapName(){return this->m_tapName;};
+
 	Ipv4Address getLinkTapAddress(){return this->m_tapAddress;};
+
+	Ipv4Mask getLinkTapMask(){return this->m_tapMask;};
+
+	Ptr<Node> getLinkNode(){return this->m_linkNode;};
+
 	Ptr<Node> getLinkTap(){return this->m_TapLeg;};
-	//////////////////// Setter Methods ///////////////////////////////////
-	void setLinkNode(Ptr<Node> networkNode){this->m_linkNode=networkNode;};
-	void setLinkTapMask(Ipv4Mask mask){this->m_tapMask=mask;};
-	void setLinkTapName(std::string tapName){this->m_tapName=tapName;};
-	void setLinkTapAddress(Ipv4Address addr){this->m_tapAddress=addr;};
-	///////////////////////////////////////////////////////////////////////
+
+	Ipv4Address getGetwayAddrToLteNet(){ return this->getwayAddrToLteNet;}
+
+	uint32_t getGetwayIfaceToLteNet(){ return this->getwayIfaceToLteNet;}
 
 	std::string m_tapName;
 	Ipv4Address m_tapAddress;
@@ -64,7 +66,10 @@ class Testbed_Link:public SimpleRefCount<Testbed_Link>{
 	Ptr<Node> m_TapLeg;
 	Ipv4Address getwayAddrToLteNet;
 	uint32_t getwayIfaceToLteNet;
-	};
+
+};
 }
 
-#endif /* SRC_SMARTGRID_LTE_TESTBED_MODEL_Testbed_Link_H_ */
+
+
+#endif /* SCRATCH_TESTBED_TAPLINK_H_ */

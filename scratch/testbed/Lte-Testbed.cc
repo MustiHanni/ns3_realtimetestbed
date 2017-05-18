@@ -1,4 +1,11 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
+/*
+ * Lte-Testbed.cc
+ *
+ *  Created on: Apr 20, 2017
+ *      Author: asa
+ */
+
+
 #include <iostream>
 #include <fstream>
 #include <sys/types.h>
@@ -7,8 +14,10 @@
 #include <sstream>
 #include <iomanip>
 #include <string>
-#include <stdio.h>      /* printf */
+#include <stdio.h>
+#include <pwd.h>
 #include <math.h>
+#include <time.h>
 #include "ns3/csma-module.h"
 #include "ns3/tap-bridge-module.h"
 #include "ns3/ipv4-static-routing.h"
@@ -27,19 +36,19 @@
 #include "ns3/mobility-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
-#include "smartgrid-lte-testbed.h"
-#include "smartgrid-lte-testbed.h"
-#include "ns3/Testbed-link.h"
+#include "Lte-Testbed.h"
+#include "TapLink.h"
 
 namespace ns3 {
 
 #define PI 3.14159265
 
-NS_LOG_COMPONENT_DEFINE ("Smartgrid-lte-testbed");
-
 Testbed::Testbed()
 {
 	NS_LOG_FUNCTION (this);
+	m_EnableP2pPcapTraces=true;
+	m_EnableAllLteTraces=true;
+	m_EnableUeEpcBearer=false;
 	m_simTime = 10;
 	m_numOfENB=1;
 	m_numOfUE=2;
@@ -47,7 +56,11 @@ Testbed::Testbed()
 	m_uePerENB=m_numOfUE/m_numOfENB;
 	m_ueDist=40;
 	m_enbDist=100;
-	m_configfilepath="/home/ns3/config/Testbed_Simu_Configuration.txt";
+	struct passwd *pw = getpwuid(getuid());
+	const char *homedir = pw->pw_dir;
+	std::string pathTohomeDir(homedir);
+	//m_configfilepath= pathTohomeDir.append("/config/Testbed_Simu_Configuration.txt");
+	m_configfilepath= "/home/ns3/ns-allinone-3.26/ns-3.26/config/Testbed_Simu_Configuration.txt";
 }
 
 Testbed::~Testbed()
@@ -65,6 +78,7 @@ void Testbed::commandLineConfiguration(int argc, char *argv[])
 	// We are interacting with the outside, world. we have to use the real-time simulator and calculate checksums.
 	GlobalValue::Bind ("SimulatorImplementationType", StringValue ("ns3::RealtimeSimulatorImpl"));
 	GlobalValue::Bind ("ChecksumEnabled", BooleanValue (true));
+	Config::SetDefault("ns3::RealtimeSimulatorImpl::SynchronizationMode",EnumValue(RealtimeSimulatorImpl::SYNC_BEST_EFFORT));
 
 	cmd.AddValue("m_simTime", "Total duration of the simulation [s])", m_simTime);
 	cmd.AddValue("m_configfilepath", "Name of Configuration file to set Testbed topologie", m_configfilepath);
@@ -96,7 +110,6 @@ void Testbed::readFileConfiguration(){
 	std::string tapMask;
 
 	std::list<Ptr<Testbed_Link>> testbedLinks;
-
 	std::ifstream ConfigFile_(m_configfilepath);
 	if(ConfigFile_.is_open()){
 
@@ -115,6 +128,10 @@ void Testbed::readFileConfiguration(){
 				linkInfoStream >> this->m_uePerENB;
 				linkInfoStream >> this->m_enbDist;
 				linkInfoStream >> this->m_ueDist;
+
+				if(this->m_numOfUE == 0 || this->m_numOfUE ==0){
+					ConfigFile_.close();
+				}
 
 				m_eNbsNodeContainer.Create (m_numOfENB);
 
@@ -159,6 +176,7 @@ void Testbed::readFileConfiguration(){
 				this->installTestbedLink(link,cellID,positionInCell);
 
 			}else{
+				//std::cout<<" Configfile  Test : "<< infotype <<std::endl;
 				continue;
 			}
 			if(!testbedLinks.empty()){
@@ -200,10 +218,19 @@ void Testbed::installTestbedLink(Ptr<Testbed_Link> link, int cellID, int positio
 			ueIpIface2.GetAddress(0,0),
 			m_pgw->GetObject<Ipv4>()->GetInterfaceForAddress(this->m_epcHelper->GetUeDefaultGatewayAddress()));
 
-	this->m_epcHelper->m_sgwPgwApp->m_ueAddrByTapAddrMap[link->m_tapAddress] = ueIpIface2.GetAddress(0,0);
+	//make EpcPgwApp forward packet to network beyond UE
+	mapTapAddrToUE(link->getLinkTapAddress(),ueIpIface2.GetAddress(0,0));
+	//this->m_epcHelper->m_sgwPgwApp->m_ueAddrByTapAddrMap[link->m_tapAddress] = ueIpIface2.GetAddress(0,0);
+	//this->m_epcHelper->AddTapAddrToMap(link->getLinkTapAddress(),ueIpIface2.GetAddress(0,0));
 
     // Attach one UE per eNodeB
     this->m_lteHelper->Attach (ueDev, m_eNbsDeviceContainer.Get(cellID));
+
+    if(this->m_EnableUeEpcBearer){
+    	enum EpsBearer::Qci q = EpsBearer::GBR_CONV_VOICE;
+    	EpsBearer bearer(q);
+    	this->m_lteHelper->ActivateDataRadioBearer(ueDev,bearer);
+    }
 }
 
 void Testbed::installTestbedLink(Ptr<Testbed_Link> link,Ipv4Address p2pNetworkAddress,Ipv4Mask p2pNetworkMask){
@@ -239,6 +266,9 @@ void Testbed::installTestbedLink(Ptr<Testbed_Link> link,Ipv4Address p2pNetworkAd
 			link->getLinkTapMask(),
 			p2pIpInterface.GetAddress(1,0),
 			this->m_pgw->GetObject<Ipv4>()->GetInterfaceForAddress( p2pIpInterface.GetAddress(0,0) ) );
+    if(this->m_EnableP2pPcapTraces){
+    	p2ph.EnablePcapAll("Testbed");
+    }
 }
 
 void Testbed::connectLinks(Ptr<Testbed_Link> firstLink,Ptr<Testbed_Link> secondLink){
@@ -278,7 +308,24 @@ void Testbed::installMobilityModel(Ptr<Testbed_Link> link, int cellID, int cellP
     ueMmobility.SetPositionAllocator( positionAlloc );
     ueMmobility.Install(link->getLinkNode());
 }
+void Testbed::mapTapAddrToUE(Ipv4Address tapAddress, Ipv4Address ueAddress){
+	m_epcHelper->AddTapAddrToMap(tapAddress,ueAddress);
+}
 
+void Testbed::startSimulation(){
+	time_t starttime,endtimer;
+	double duration;
+    if(this->m_EnableAllLteTraces){
+    	this->m_lteHelper->EnableTraces();
+    }
+    //std::cout<<"Simulation started, will take "<<this->m_simTime<<" Minutes"<<std::endl;
+	Simulator::Stop(Minutes(this->m_simTime));
+	time(&starttime);
+	Simulator::Run();
+	time(&endtimer);
+	Simulator::Destroy();
+	duration = difftime(endtimer,starttime);
+    std::cout<<"Simulation run duration:  "<< duration <<std::endl;
+}
 }//ns3 namepspace
-
 

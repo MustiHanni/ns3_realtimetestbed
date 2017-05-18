@@ -1,6 +1,12 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-#ifndef SMARTGRID_LTE_TESTBED_H
-#define SMARTGRID_LTE_TESTBED_H
+/*
+ * Lte-Testbed.h
+ *
+ *  Created on: Apr 20, 2017
+ *      Author: asa
+ */
+
+#ifndef SCRATCH_TESTBED_LTE_TESTBED_H_
+#define SCRATCH_TESTBED_LTE_TESTBED_H_
 #include <iostream>
 #include <fstream>
 #include <sys/types.h>
@@ -22,7 +28,7 @@
 #include "ns3/mobility-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/config-store.h"
-#include "Testbed-link.h"
+#include "TapLink.h"
 
 namespace ns3 {
 
@@ -42,7 +48,9 @@ public:
 
 	void connectLinks(Ptr<Testbed_Link> firstLink, Ptr<Testbed_Link> secLink);
 
+	void mapTapAddrToUE(Ipv4Address tapAddress, Ipv4Address ueAddress);
 
+	void startSimulation();
 	std::string m_configfilepath;
 	double m_numOfENB;
 	double m_numOfUE;
@@ -59,11 +67,17 @@ public:
 
     NodeContainer m_eNbsNodeContainer;
     NetDeviceContainer m_eNbsDeviceContainer;
+
+	bool m_EnableP2pPcapTraces;
+	bool m_EnableAllLteTraces;
+	bool m_EnableUeEpcBearer;
 protected:
 
 private:
 };
 }
 
-#endif /* SMARTGRID_LTE_TESTBED_H */
 
+
+
+#endif /* SCRATCH_TESTBED_LTE_TESTBED_H_ */
