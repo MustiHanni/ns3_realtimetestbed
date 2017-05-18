@@ -11,17 +11,3 @@
 /*
 !.gitignore
 !config/
-#!src/
-#!scratch/
-
-# Ignore everything in the "wp-content" directory, except the "plugins"
-# and "themes" directories. 
-#src/*
-#!src/lte/
-#!src/testbed/
-#!src/smartgrid-lte-testbed/
-
-# Ignore everything in the "plugins" directory, except the plugins you
-# specify (see the commented-out examples for hints on how to do this.)
-#src/lte/*
-#!src/lte/model/
