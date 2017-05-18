@@ -1,0 +1,8 @@
+#!/bin/sh
+echo "sh /home/ns3/ns-allinone-3.26/ns-3.26/config/routing-0.sh ; node /home/ns3/ns-allinone-3.26/ns-3.26/server.js --Host 1.0.0.2 ; sleep 1" | sudo /usr/bin/lxc-execute -n lxc-0 -f /home/ns3/ns-allinone-3.26/ns-3.26/config/lxc-0.conf /bin/bash &
+echo "sh /home/ns3/ns-allinone-3.26/ns-3.26/config/routing-1.sh ; node /home/ns3/ns-allinone-3.26/ns-3.26/client.js --Host 1.0.0.2 ; sleep 1" | sudo /usr/bin/lxc-execute -n lxc-1 -f /home/ns3/ns-allinone-3.26/ns-3.26/config/lxc-1.conf /bin/bash &
+echo "sh /home/ns3/ns-allinone-3.26/ns-3.26/config/routing-2.sh ; node /home/ns3/ns-allinone-3.26/ns-3.26/server.js --Host 1.0.2.2 ; sleep 1" | sudo /usr/bin/lxc-execute -n lxc-2 -f /home/ns3/ns-allinone-3.26/ns-3.26/config/lxc-2.conf /bin/bash &
+echo "sh /home/ns3/ns-allinone-3.26/ns-3.26/config/routing-3.sh ; node /home/ns3/ns-allinone-3.26/ns-3.26/client.js --Host 1.0.2.2; sleep 1" | sudo /usr/bin/lxc-execute -n lxc-3 -f /home/ns3/ns-allinone-3.26/ns-3.26/config/lxc-3.conf /bin/bash &
+echo "sh /home/ns3/ns-allinone-3.26/ns-3.26/config/routing-4.sh ; node /home/ns3/ns-allinone-3.26/ns-3.26/server.js --Host 1.0.4.2 ; sleep 1" | sudo /usr/bin/lxc-execute -n lxc-4 -f /home/ns3/ns-allinone-3.26/ns-3.26/config/lxc-4.conf /bin/bash &
+echo "sh /home/ns3/ns-allinone-3.26/ns-3.26/config/routing-5.sh ; node /home/ns3/ns-allinone-3.26/ns-3.26/client.js --Host 1.0.4.2 ; sleep 1" | sudo /usr/bin/lxc-execute -n lxc-5 -f /home/ns3/ns-allinone-3.26/ns-3.26/config/lxc-5.conf /bin/bash &
+echo "sh /home/ns3/ns-allinone-3.26/ns-3.26/config/routing-6.sh ; node /home/ns3/ns-allinone-3.26/ns-3.26/client.js --Host 1.0.0.2 ; sleep 1" | sudo /usr/bin/lxc-execute -n lxc-6 -f /home/ns3/ns-allinone-3.26/ns-3.26/config/lxc-6.conf /bin/bash &
